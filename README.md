@@ -1,12 +1,14 @@
 # MNIST_metspo — Football Possession Inference
 
-MNIST is a CPU-based submission for [More Than A Hack 2027](https://github.com/metrica-sports/more-than-a-hack-2027), which evaluates football possession spells. It combines tactical XY tracking, team and goalkeeper metadata, and automatic Smart Tagging to assign one label per video frame: `H` (home possession), `A` (away possession), `D` (dead ball), or `X` (outside graded intervals).
+MNIST estimates team possession from football tracking data for [More Than A Hack 2027](https://github.com/metrica-sports/more-than-a-hack-2027), a competition that ranks possession-spell predictions. The implementation uses tactical XY tracking, team and goalkeeper metadata, and automatic Smart Tagging to produce one label per video frame: `H` (home possession), `A` (away possession), `D` (dead ball), or `X` (outside graded intervals). Inference runs on the CPU using frozen model parameters.
 
 ## Method
 
-The model combines geometric observations with learned player interactions and temporal context. At 5 Hz, tracking and tag features describe ball motion, player proximity, team movement and event context; validity indicators distinguish missing observations from measured values. A shared player embedding and two-head self-attention capture interactions, while masked mean/max pooling produces a fixed-size representation for each team.
+Possession depends on control over time: the nearest player may change during a loose ball, a challenge or a tracking gap without a corresponding change of possession. The model therefore combines geometric observations with player interactions and temporal context. Tracking and tag features describe ball motion, player proximity, team movement and event context at 5 Hz. Validity indicators distinguish missing observations from measured values.
 
-Two parallel dilated temporal convolution paths process the combined features. A shared readout estimates dead-ball probability and home possession conditional on live play, yielding joint H/A/D probabilities. Ensemble probabilities feed duration-aware dynamic programming with transition priors and geometric control evidence. Decoding whole sequences reduces fragmented possession changes caused by loose balls, brief contacts and tracking gaps. Each graded half is processed independently, and labels are expanded to the original 25 Hz time base.
+A shared player embedding and two-head self-attention represent interactions between observed players. Masked mean and maximum pooling within each team provide a fixed-size representation despite variation in the number of visible players. Two parallel dilated temporal convolution paths combine this representation with tracking and tag features. A shared readout estimates dead-ball probability and home possession conditional on live play; these estimates define joint H/A/D probabilities.
+
+Duration-aware dynamic programming combines the averaged probabilities with transition priors and geometric control evidence to select a possession sequence. Duration priors penalize fragmentation, while control-gated transitions prevent proximity alone from forcing an ownership change. Each graded half is processed independently, and decoded labels are expanded to the original 25 Hz time base.
 
 > **Architecture diagram placeholder:** tracking/tag features and pooled player attention → two temporal convolution paths → H/A/D probabilities → ensemble averaging → duration-aware decoding. A distributable illustration is not included in this repository.
 
@@ -18,18 +20,20 @@ The frozen ensemble contains **21 models**: seven held-match folds × three rand
 
 All submitted learned parameters derive from [DFL/IDSSE Bundesliga data, version 1](https://doi.org/10.6084/m9.figshare.28196177.v1). No target-match labels were used for training, tuning or candidate selection; the published target labels were used only for pipeline correctness checks.
 
-This is an **inference-only package**. It includes the model weights, normalization statistics, decoder parameters and inference implementation, but not the training or external benchmarking harnesses. The repository supports regenerating the submitted CSV from frozen models, not reproducing model training or the development benchmarks. Training provenance and other development datasets are documented in [MNIST.md](MNIST.md).
+This is an **inference-only package** containing model weights, normalization statistics, decoder parameters and inference code. The training and external benchmarking harnesses are not included. Reproducibility here means regenerating the submitted CSV from the supplied models; it does not extend to retraining or rerunning the development benchmarks. [MNIST.md](MNIST.md) documents training provenance and the other datasets used during development.
 
 ## External evaluation
 
-The following are recorded external development results reported in [MNIST.md](MNIST.md), not newly rerun benchmarks or competition performance. Higher spellF1 is better.
+The table summarizes historical external development results from [MNIST.md](MNIST.md). DFL results describe development cross-validation; SkillCorner results describe evaluation of the final ensemble on a previously examined external panel. These are recorded development measurements rather than newly rerun benchmarks or competition scores. Higher spellF1 is better.
 
 | External panel | Recorded candidate spellF1 | Recorded reference spellF1 |
 | :--- | ---: | :--- |
 | Seven-match degraded DFL cross-validation | 0.533151 | 0.504072 — earlier snapshot-attention reference |
 | Previously examined 20-match SkillCorner panel | 0.392735 | 0.393600 and 0.395500 — two reference scores |
 
-The DFL gain was 0.029079, with improvements on all seven matches. SkillCorner mean spellF1 did not improve, although the ensemble passed the prospectively fixed transfer tolerance. Repeated use of the external panels, reuse of discovery models and adaptive follow-up experiments limit the strength of this evidence. These results do not establish hidden-test accuracy or leaderboard placement.
+The recorded DFL improvement was 0.029079 spellF1, with gains on all seven matches. On SkillCorner, the final ensemble scored below both references but met the prospectively fixed transfer tolerance. The evidence therefore supports an improvement on the DFL development panel, without a corresponding improvement in mean SkillCorner spellF1.
+
+Repeated use of the external panels, reuse of discovery models and adaptive follow-up experiments limit the independence of these comparisons. The results do not establish hidden-test accuracy or leaderboard placement; [MNIST.md](MNIST.md) describes the evaluation history and its qualifications.
 
 ## Quick start
 
@@ -110,7 +114,9 @@ LICENSE           Original-code licence, upstream notices and data attribution
 
 ## Limitations
 
-External provider possession labels may differ from the competition's controlled-possession definition, and transfer results indicate domain shift. Noisy tracking and unmarked player identity switches can corrupt local velocity features; missing-ball observations weaken control and restart evidence. Validity masks preserve missingness information but cannot recover absent measurements.
+Differences in tracking quality and possession semantics between the external datasets and the competition match pose a risk to generalization. Provider labels may not follow the same controlled-possession definition. The external benchmarks do not isolate the contribution of these differences to prediction errors.
+
+Noisy tracking and unmarked player identity switches can corrupt local velocity features. Missing-ball observations reduce the evidence available for control and restart decisions; validity masks retain information about missingness but cannot reconstruct absent measurements.
 
 Sampling at 5 Hz and duration priors can merge or suppress very short possessions. Temporal context also uses future observations within each half, so the implementation is intended for offline processing. See [MNIST.md](MNIST.md) for detailed failure modes and the limits of the external evaluation.
 
