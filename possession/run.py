@@ -13,10 +13,11 @@ for _name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
 
 import numpy as np
 
-from .candidates import ALL_CANDIDATES, predict
-from .game import BLOCKS, asset_paths
-from .io_atd import load_tracking
-from .io_tagging import load_tagging
+from .data.match import BLOCKS, asset_paths
+from .data.tracking import load_tracking
+from .data.tagging import load_tagging
+from .features.set_pieces import metadata_team_names
+from .inference.pipeline import predict
 
 
 def write_submission(path, labels):
@@ -29,33 +30,31 @@ def write_submission(path, labels):
     return path
 
 
-def regenerate(out, *, data_dir=None, candidate="control_v1"):
+def regenerate(out, *, data_dir=None):
     if Path(out).exists():
         raise FileExistsError("Output exists; choose a new output path.")
     paths = asset_paths(data_dir)
     if not all(path.is_file() for path in paths.values()):
         raise FileNotFoundError("Required tactical assets are missing; check MTAH_DATA_DIR.")
     tracking = load_tracking(paths["atd_raw"], paths["atd_meta"])
-    options = {}
-    if candidate == "solution":
-        from .tag_features import metadata_team_names
-        try:
-            options["team_names"] = metadata_team_names(ET.parse(paths["atd_meta"]).getroot())
-        except ET.ParseError:
-            raise ValueError("Invalid tactical team metadata.") from None
-    labels = predict(candidate, tracking, load_tagging(paths["smart_tagging"]), BLOCKS, **options)
+    try:
+        team_names = metadata_team_names(ET.parse(paths["atd_meta"]).getroot())
+    except ET.ParseError:
+        raise ValueError("Invalid tactical team metadata.") from None
+    labels = predict(tracking, load_tagging(paths["smart_tagging"]), BLOCKS, team_names=team_names)
     write_submission(out, labels)
     return {label: int(np.sum(labels == label)) for label in "HADX"}
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--candidate", required=True, choices=ALL_CANDIDATES)
+    parser.add_argument("--candidate", default="solution", choices=("solution",),
+                        help="The packaged submission ensemble (default: solution)")
     parser.add_argument("--out", required=True, type=Path, metavar="OUTPUT.csv")
     parser.add_argument("--data-dir", type=Path, help="Overrides MTAH_DATA_DIR")
     args = parser.parse_args(argv)
     try:
-        counts = regenerate(args.out, data_dir=args.data_dir, candidate=args.candidate)
+        counts = regenerate(args.out, data_dir=args.data_dir)
     except (OSError, ValueError):
         # Do not echo exception strings: third-party parsers may include input data.
         parser.exit(1, "Regeneration failed. Check the data root, tactical input format, "

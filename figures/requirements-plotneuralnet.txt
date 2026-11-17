@@ -1,3 +1,0 @@
-# Source generation needs only the Python standard library.
-# Rendering additionally needs a working Tectonic executable.
-pymupdf==2.1

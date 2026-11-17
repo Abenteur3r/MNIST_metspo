@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Deterministic CPU football possession inference (H/A/D/X per frame) for More Than A Hack 2027"
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "numpy==2.5.4",

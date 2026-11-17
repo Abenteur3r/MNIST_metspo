@@ -57,25 +57,6 @@ priors and control constants use all seven external matches. The path expands
 from 5 Hz to 25 Hz. The two graded blocks, 11185–90651 and 110808–190197
 (inclusive), have independent temporal context. Other frames are X.
 
-![MNIST inference pipeline and external training.](figures/pipeline.png)
-
-*Figure 1. Tactical inputs become tracking and attention features, temporal
-probabilities and duration-aware possession spells. All fitted parameters
-come from external DFL matches.*
-
-![Detailed player-attention and temporal-convolution architecture.](figures/architecture.png)
-
-*Figure 2. One ensemble member: 238 base values and a 128-value pooled player
-representation feed two temporal paths. Their 16-channel outputs are
-concatenated; both binary heads read all 32 channels. Joint H/A/D probabilities
-are averaged over 21 members before duration-aware decoding. Layer dimensions
-are checked against the packaged weights. [Vector PDF](figures/architecture.pdf)
-and [offline HTML](figures/architecture.html) are available.*
-
-An additional layer-by-layer rendering made with PlotNeuralNet/TikZ is
-available as [PDF](figures/plotneuralnet.pdf), [PNG](figures/plotneuralnet.png)
-and [editable LaTeX source](figures/plotneuralnet.tex).
-
 ## Possession rules and imperfect tracking
 
 Loose-ball and challenge states are resolved by temporal probabilities and
@@ -160,7 +141,7 @@ simulation that failed its external improvement gate. No visual model saw
 target frames; whistle thresholds were not adjusted on target audio. These
 experiments do not affect serving. No AudioSet audio was downloaded or used
 for tuning. The MIT upstream-code notice and data attribution appear in
-[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+[LICENSE](LICENSE).
 
 ## Evidence and limitations
 
@@ -171,12 +152,6 @@ reference: gain +0.029079, seven of seven match wins, paired-match 95% interval
 20-match SkillCorner panel, the final ensemble scored **0.392735 spellF1**,
 versus reference scores 0.393600 and 0.395500. It passed the prospectively
 fixed transfer tolerance, but did not improve mean SkillCorner spellF1.
-
-![External development scores and paired changes with 95% intervals.](figures/external_validation.png)
-
-*Figure 3. MNIST versus the previous snapshot-attention ensemble. DFL improves
-by +0.029079 spellF1; SkillCorner changes by −0.000865. Intervals use the
-original whole-match bootstrap. Neither panel is a hidden-match score.*
 
 These are historical development results, not newly rerun benchmarks or a
 competition score. Repeated use of the external panels, reuse of discovery
@@ -193,16 +168,12 @@ training, tuning or selection. No private ground truth or other human-produced
 target-match labels were used. This does not establish hidden-match accuracy.
 Main risks are provider-label semantics, domain shift, missing-ball transition
 errors, corrupted same-slot velocity and merged short opponent possessions.
+Recorded DFL possession recall at temporal IoU 0.5 was 1.6% for possessions
+of one second or less, compared with 89.4% for possessions longer than ten
+seconds. These counts pool repeated degradation-grid units rather than
+unique independent possessions.
 More independent external games with compatible controlled-possession labels
 would provide a stronger evaluation before changing the model.
-
-![DFL match-level improvements and possession recall by duration.](figures/diagnostics.png)
-
-*Figure 4. Improvement is positive in all seven DFL matches. Possessions of
-one second or less have only 1.6% recall at temporal IoU 0.5, compared with
-89.4% for possessions longer than ten seconds. Duration counts pool repeated
-degradation-grid units, rather than unique independent possessions. Plotting
-inputs, provenance and generation instructions are in [figures/README.md](figures/README.md).*
 
 ## Reproduction
 
@@ -212,7 +183,7 @@ From the repository root with Python 3.12 (tested on 3.12.14):
 python3.12 -m venv .venv
 .venv/bin/python -m pip install .
 export MTAH_DATA_DIR="/path/to/More Than A Hack 2027 - Initial Challenge - Dataset"
-.venv/bin/python -m possession.run --candidate solution --out reproduced.csv --data-dir "$MTAH_DATA_DIR"
+.venv/bin/python -m possession.run --out reproduced.csv --data-dir "$MTAH_DATA_DIR"
 ```
 
 Use a new output path. All 21 models and the manifest are packaged with the
