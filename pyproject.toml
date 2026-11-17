@@ -1,0 +1,25 @@
+[project]
+name = "mnist-possession"
+version = "1.0.0"
+description = "Deterministic CPU football possession inference (H/A/D/X per frame) for More Than A Hack 2027"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy==2.5.4",
+]
+
+[project.optional-dependencies]
+bench = ["pandas==3.1.0"]
+
+[build-system]
+requires = ["setuptools==80.9.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["possession*"]
+
+[tool.setuptools.package-data]
+possession = ["models/*.json"]

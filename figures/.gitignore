@@ -1,0 +1,5 @@
+# TeX compiler intermediates; .tex sources and rendered figures are retained.
+*.aux
+*.log
+*.xdv
+*.synctex.gz

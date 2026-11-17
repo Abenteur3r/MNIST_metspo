@@ -1,0 +1,35 @@
+# Match data and anything derived from it at frame level must never be committed.
+data/
+.cache/
+local_only/
+*.npz
+*.npy
+*.csv
+!MNIST.csv
+!tests/fixtures/*.csv
+*.xml
+*.txt
+!requirements*.txt
+*.mp4
+*.mkv
+*.wav
+*.jpg
+*.jpeg
+*.png
+*.parquet
+*.pkl
+__pycache__/
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.env
+*.pem
+*.key
+# Optional local clone of the official evaluator.
+official-repo/
+
+# Publication figures contain diagrams and permitted external aggregates only.
+!figures/*.png
+.venv-figures/
