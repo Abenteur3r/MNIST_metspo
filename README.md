@@ -122,6 +122,7 @@ Sampling at 5 Hz and duration priors can merge or suppress very short possession
 
 ## Documentation, data and licensing
 
+- [Technical methodology document — MNIST.pdf](report/MNIST.pdf): concise description of the implementation, architecture and training approach.
 - [Technical report — MNIST.md](MNIST.md): methodology, training data and annotation provenance, external experiments, possession rules, limitations and reproduction details.
 - [Official submission requirements](https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/SUBMISSION.md) and [competition rules](https://github.com/metrica-sports/more-than-a-hack-2027/blob/main/RULES.md): required deliverables and permitted data use.
 - [LICENSE](LICENSE): MIT licence for original code, the Metrica Sports upstream MIT notice, and training-data/model attribution. DFL data are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the code's MIT licence does not replace obligations associated with the training data or derived parameters.
